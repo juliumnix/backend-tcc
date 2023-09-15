@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.io.File
 import org.springframework.stereotype.Service
 import java.io.FileOutputStream
+import java.io.FileWriter
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -16,18 +17,20 @@ import java.util.zip.ZipInputStream
 class EngineOrchestrator @Autowired constructor(
         private val reactDependencyInjection: ReactDependencyInjection,
         private val flutterDependencyInjection: FlutterDependencyInjection,
-        private val deployProcess: DeployProcess) {
+        private val deployProcess: DeployProcess,
+        private val switchNameProject: SwitchNameProject) {
 
     val sendToGithub = SendToGithub();
 
-    fun init(arquitecture: String,
-             destinationPath: String,
-             reactDependencies: List<Map<String, String>>,
-             flutterDependencies: List<Map<String, String>>,
-             repositoryKey: String,
-             projectName: String,
-             ownerName: String,
-             needZip: Boolean,
+    fun init(
+            arquitecture: String,
+            destinationPath: String,
+            reactDependencies: List<Map<String, String>>,
+            flutterDependencies: List<Map<String, String>>,
+            repositoryKey: String,
+            projectName: String,
+            ownerName: String,
+            needZip: Boolean,
     ) {
         val repositoryUrl: String = when (arquitecture) {
             "mvvm" -> "https://github.com/juliumnix/mvvm-blank-project/archive/refs/heads/main.zip"
@@ -77,6 +80,7 @@ class EngineOrchestrator @Autowired constructor(
                 if (diretoryName != null) {
                     reactDependencyInjection.injection(destinationPath, diretoryName, reactDependencies)
                     flutterDependencyInjection.injection(destinationPath, diretoryName, flutterDependencies)
+                    switchNameProject.changeSettingsGradle("$destinationPath/$diretoryName", projectName)
                     deployProcess.createRepository(projectName, "", repositoryKey)
                     sendToGithub.commitProject(
                             "$destinationPath/$diretoryName",
@@ -84,12 +88,8 @@ class EngineOrchestrator @Autowired constructor(
                             ownerName,
                             projectName);
 
-                    if(needZip){
-
-                    }
 //                    deleteClonedRepository("$destinationPath/$diretoryName")
                 }
-
 
 
             } else {

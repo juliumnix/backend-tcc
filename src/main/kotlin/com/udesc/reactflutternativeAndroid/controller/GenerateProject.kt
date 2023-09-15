@@ -4,6 +4,7 @@ import com.udesc.reactflutternativeAndroid.engine.EngineOrchestrator
 import com.udesc.reactflutternativeAndroid.model.Notifier
 import com.udesc.reactflutternativeAndroid.model.ProjectArtifact
 import com.udesc.reactflutternativeAndroid.utils.RandomizerName
+import okhttp3.internal.http.HttpMethod
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
@@ -13,6 +14,8 @@ import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.context.request.RequestContextHolder
+import org.springframework.web.context.request.ServletRequestAttributes
 import java.io.ByteArrayOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -42,9 +45,7 @@ class GenerateProject @Autowired constructor(private val engineOrchestrator: Eng
 
         val content = "Este é um exemplo de string que pode ser retornada."
 
-        // Verifique se o cliente deseja um arquivo ZIP (por exemplo, com base em parâmetros de consulta)
-        val acceptHeader = HttpHeaders().get(HttpHeaders.ACCEPT)?.firstOrNull()
-        if ("application/zip" == acceptHeader) {
+        if (projectRequest.needZIPFile) {
             // Se o cliente aceitar um arquivo ZIP, crie e retorne um arquivo ZIP
             val byteArrayOutputStream = ByteArrayOutputStream()
             val zipOutputStream = ZipOutputStream(byteArrayOutputStream)
@@ -62,7 +63,6 @@ class GenerateProject @Autowired constructor(private val engineOrchestrator: Eng
 
             return ResponseEntity(byteArray, headers, 200)
         } else {
-            // Caso contrário, retorne a string simples
             return ResponseEntity.ok(content.toByteArray())
         }
 
