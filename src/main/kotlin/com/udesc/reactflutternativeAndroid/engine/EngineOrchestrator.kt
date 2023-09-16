@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.io.File
 import org.springframework.stereotype.Service
 import java.io.FileOutputStream
-import java.io.FileWriter
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -18,7 +17,7 @@ class EngineOrchestrator @Autowired constructor(
         private val reactDependencyInjection: ReactDependencyInjection,
         private val flutterDependencyInjection: FlutterDependencyInjection,
         private val deployProcess: DeployProcess,
-        private val switchNameProject: SwitchNameProject) {
+        private val changeNameProject: ChangeNameProject) {
 
     val sendToGithub = SendToGithub();
 
@@ -80,7 +79,8 @@ class EngineOrchestrator @Autowired constructor(
                 if (diretoryName != null) {
                     reactDependencyInjection.injection(destinationPath, diretoryName, reactDependencies)
                     flutterDependencyInjection.injection(destinationPath, diretoryName, flutterDependencies)
-                    switchNameProject.changeSettingsGradle("$destinationPath/$diretoryName", projectName)
+                    changeNameProject.changeSettingsGradle("$destinationPath/$diretoryName", projectName)
+                    changeNameProject.changeStringXML("$destinationPath/$diretoryName", projectName)
                     deployProcess.createRepository(projectName, "", repositoryKey)
                     sendToGithub.commitProject(
                             "$destinationPath/$diretoryName",
@@ -88,7 +88,7 @@ class EngineOrchestrator @Autowired constructor(
                             ownerName,
                             projectName);
 
-//                    deleteClonedRepository("$destinationPath/$diretoryName")
+                    deleteClonedRepository("$destinationPath/$diretoryName")
                 }
 
 
@@ -108,6 +108,18 @@ class EngineOrchestrator @Autowired constructor(
     }
 
     private fun deleteDirectory(directory: Path?) {
-        Files.walk(directory).sorted(Comparator.reverseOrder()).map { it.toFile() }.forEach { it.delete() }
+        if (directory == null || !Files.exists(directory)) {
+            return
+        }
+
+        Files.walk(directory).sorted(Comparator.reverseOrder()).map { it.toFile() }.forEach { file ->
+            if (file.isDirectory) {
+                file.delete()
+            } else {
+                file.delete()
+            }
+        }
+
+        directory.toFile().delete()
     }
 }
