@@ -1,6 +1,8 @@
 package com.udesc.reactflutternativeAndroid.engine
 
 import com.udesc.reactflutternativeAndroid.adapter.DependencyInjector
+import com.udesc.reactflutternativeAndroid.model.Notifier
+import com.udesc.reactflutternativeAndroid.utils.ReadmeGenerator
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import org.yaml.snakeyaml.DumperOptions
@@ -11,7 +13,7 @@ import java.io.FileWriter
 
 @Service
 class FlutterDependencyInjection : DependencyInjector {
-
+    val notifier = Notifier;
     override fun injection(destinationPath: String, diretoryName: String, dependencies: List<Map<String, String>>) {
         try {
             val flutterModuleDirectory = File("$destinationPath/$diretoryName", "flutter_module")
@@ -34,6 +36,8 @@ class FlutterDependencyInjection : DependencyInjector {
             dependencies.forEach { dependency ->
                 val name = dependency["name"] as String
                 val version = dependency["version"] as String
+                ReadmeGenerator.setFlutterTable(ReadmeGenerator.generateFlutterTable() + "|  $name  | $version |  \n")
+                notifier.setNotifyStatus("Adicionando dependencia $name")
                 dependenciesNodeFlutter[name] = version
             }
 

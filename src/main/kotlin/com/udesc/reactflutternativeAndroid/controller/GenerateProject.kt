@@ -5,6 +5,7 @@ import com.udesc.reactflutternativeAndroid.model.Notifier
 import com.udesc.reactflutternativeAndroid.model.ProjectArtifact
 import com.udesc.reactflutternativeAndroid.utils.RandomizerName
 import okhttp3.internal.http.HttpMethod
+import org.apache.commons.io.FileUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
@@ -17,6 +18,12 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.Serializable
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlin.random.Random
@@ -31,11 +38,13 @@ class GenerateProject @Autowired constructor(private val engineOrchestrator: Eng
 
 
     @PostMapping("/create")
-    fun createProject(@RequestBody projectRequest: ProjectArtifact): ResponseEntity<ByteArray> {
+    fun createProject(@RequestBody projectRequest: ProjectArtifact): ResponseEntity<out Serializable> {
         notifier.setNotifyStatus("Criando projeto")
+        val randomName = RandomizerName.generateRandomName(10)
+        val projectDirectory = File("$localCloneDirectory/$randomName")
         engineOrchestrator.init(
                 projectRequest.architecture,
-                "$localCloneDirectory/${RandomizerName.generateRandomName(10)}",
+                "$localCloneDirectory/${randomName}",
                 projectRequest.reactDependencies,
                 projectRequest.flutterDependencies,
                 projectRequest.repositoryKey,
@@ -43,28 +52,79 @@ class GenerateProject @Autowired constructor(private val engineOrchestrator: Eng
                 projectRequest.ownerName,
                 projectRequest.needZIPFile)
 
-        val content = "Este é um exemplo de string que pode ser retornada."
-
         if (projectRequest.needZIPFile) {
-            // Se o cliente aceitar um arquivo ZIP, crie e retorne um arquivo ZIP
             val byteArrayOutputStream = ByteArrayOutputStream()
-            val zipOutputStream = ZipOutputStream(byteArrayOutputStream)
-            val entry = ZipEntry("data.txt")
 
-            zipOutputStream.putNextEntry(entry)
-            zipOutputStream.write(content.toByteArray())
-            zipOutputStream.closeEntry()
-            zipOutputStream.close()
+            val zipFileNameToUse = "projeto.zip"
+            val zipOutputStream = ZipOutputStream(byteArrayOutputStream)
+
+
+            if (!projectDirectory.exists() || !projectDirectory.isDirectory || projectDirectory.list().isEmpty()) {
+                return ResponseEntity.badRequest().body("O diretório de origem está vazio.")
+            }
+
+            val targetDirectoryName = findTargetDirectory(projectDirectory)
+            if (targetDirectoryName == null) {
+                return ResponseEntity.badRequest().body("Nenhum diretório correspondente foi encontrado.")
+            }
+
+            try {
+                val targetDirectory = File(projectDirectory, targetDirectoryName)
+                if (targetDirectory.exists() && targetDirectory.isDirectory) {
+                    val filesToZip = targetDirectory.listFiles()
+                    if (filesToZip != null) {
+                        for (file in filesToZip) {
+                            addToZip(zipOutputStream, file, file.name)
+                        }
+                    }
+                } else {
+                    return ResponseEntity.badRequest().body("O diretório '$targetDirectoryName' não foi encontrado.")
+                }
+            } catch (e: Exception) {
+                return ResponseEntity.badRequest().body("Falha ao criar o arquivo ZIP.")
+            } finally {
+                zipOutputStream.close()
+            }
 
             val byteArray = byteArrayOutputStream.toByteArray()
             val headers = HttpHeaders()
             headers.contentType = MediaType.parseMediaType("application/zip")
             headers.contentLength = byteArray.size.toLong()
 
+            println("Tamanho do arquivo ZIP: ${byteArray.size} bytes")
+
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"$zipFileNameToUse\"")
+            engineOrchestrator.deleteClonedRepository("$localCloneDirectory/$randomName")
             return ResponseEntity(byteArray, headers, 200)
         } else {
-            return ResponseEntity.ok(content.toByteArray())
+            engineOrchestrator.deleteClonedRepository("$localCloneDirectory/$randomName")
+            val message = "O projeto foi criado com sucesso na pasta: ${projectDirectory.absolutePath}"
+            return ResponseEntity.ok(message)
         }
+    }
 
+    private fun findTargetDirectory(baseDirectory: File): String? {
+        val possibleDirectories = baseDirectory.listFiles { file ->
+            file.isDirectory && file.name.contains("blank-project-main") || file.isDirectory && file.name.contains("completo")
+        }
+        return possibleDirectories?.firstOrNull()?.name
+    }
+
+    private fun addToZip(zipOutputStream: ZipOutputStream, file: File, entryName: String) {
+        if (file.isDirectory) {
+            val files = file.listFiles()
+            if (files != null) {
+                for (subFile in files) {
+                    addToZip(zipOutputStream, subFile, entryName + File.separator + subFile.name)
+                }
+            }
+        } else {
+            val entry = ZipEntry(entryName)
+            zipOutputStream.putNextEntry(entry)
+            val fileInputStream = FileInputStream(file)
+            fileInputStream.copyTo(zipOutputStream)
+            fileInputStream.close()
+            zipOutputStream.closeEntry()
+        }
     }
 }

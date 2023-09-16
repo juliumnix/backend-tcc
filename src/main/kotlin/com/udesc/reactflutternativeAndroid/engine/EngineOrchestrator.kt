@@ -1,14 +1,27 @@
 package com.udesc.reactflutternativeAndroid.engine
 
+import com.udesc.reactflutternativeAndroid.model.Notifier
+import com.udesc.reactflutternativeAndroid.utils.GithubActionGenerator
+import com.udesc.reactflutternativeAndroid.utils.ReadmeGenerator
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod
+import org.springframework.http.HttpStatus
 import java.io.File
 import org.springframework.stereotype.Service
+import org.springframework.web.client.RestTemplate
 import java.io.FileOutputStream
+import java.io.FileWriter
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.Base64
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
@@ -20,6 +33,7 @@ class EngineOrchestrator @Autowired constructor(
         private val changeNameProject: ChangeNameProject) {
 
     val sendToGithub = SendToGithub();
+    val notifier = Notifier
 
     fun init(
             arquitecture: String,
@@ -51,7 +65,7 @@ class EngineOrchestrator @Autowired constructor(
                 val diretoryName = entry?.name;
                 while (entry != null) {
                     val entryFile = File(destinationPath, entry.name)
-
+                    notifier.setNotifyStatus("Copiando arquivos localmente para modificação")
                     if (entry.isDirectory) {
                         entryFile.mkdirs()
                     } else {
@@ -69,27 +83,60 @@ class EngineOrchestrator @Autowired constructor(
 
                 zipInputStream.close()
 
-//                val readmeFile = File("$destinationPath/$diretoryName", "README.md")
-//                val readmeContent = "# Título do Projeto\n\nUma breve descrição sobre o que esse projeto faz e para quem ele é"
-//                FileWriter(readmeFile).use { writer ->
-//                    writer.write(readmeContent)
-//                }
-
 
                 if (diretoryName != null) {
-                    reactDependencyInjection.injection(destinationPath, diretoryName, reactDependencies)
-                    flutterDependencyInjection.injection(destinationPath, diretoryName, flutterDependencies)
-                    changeNameProject.changeSettingsGradle("$destinationPath/$diretoryName", projectName)
-                    changeNameProject.changeStringXML("$destinationPath/$diretoryName", projectName)
+                    if (arquitecture != "completo") {
+                        notifier.setNotifyStatus("Injetando dependencias do React")
+                        ReadmeGenerator.setReactTable("\n" +
+                                "# Dependencias\n" +
+                                "\n" +
+                                "React Native\n" +
+                                "\n" +
+                                "| Dependencia |  Versão  |\n" +
+                                "|:-----|:--------:|\n")
+                        reactDependencyInjection.injection(destinationPath, diretoryName, reactDependencies)
+                        ReadmeGenerator.setFlutterTable("Flutter\n" +
+                                "\n" +
+                                "| Dependencia |  Versão  |\n" +
+                                "|:-----|:--------:|\n")
+                        flutterDependencyInjection.injection(destinationPath, diretoryName, flutterDependencies)
+                        changeNameProject.changeSettingsGradle("$destinationPath/$diretoryName", projectName)
+                        changeNameProject.changeStringXML("$destinationPath/$diretoryName", projectName)
+                    }
+
+                    val readmeFile = File("$destinationPath/$diretoryName", "README.md")
+                    val readmeContent = ReadmeGenerator.generate();
+                    FileWriter(readmeFile).use { writer ->
+                        writer.write(readmeContent)
+                    }
+
+                    ReadmeGenerator.setReactTable("")
+                    ReadmeGenerator.setFlutterTable("")
+
                     deployProcess.createRepository(projectName, "", repositoryKey)
                     sendToGithub.commitProject(
                             "$destinationPath/$diretoryName",
                             repositoryKey,
                             ownerName,
                             projectName);
-
-                    deleteClonedRepository("$destinationPath/$diretoryName")
                 }
+
+                val workflowsDir = File("$destinationPath/$diretoryName/.github/workflows")
+                if (!workflowsDir.exists()) {
+                    workflowsDir.mkdirs()
+                }
+
+                val readmeFileGithubActions = File("$destinationPath/$diretoryName", "/.github/workflows/build.yml")
+                val readmeContentGithubActions = GithubActionGenerator.generate();
+                FileWriter(readmeFileGithubActions).use { writer ->
+                    writer.write(readmeContentGithubActions)
+                }
+
+                sendToGithub.commitProjectGithub(
+                        "$destinationPath/$diretoryName",
+                        repositoryKey,
+                        ownerName,
+                        projectName);
 
 
             } else {
@@ -108,18 +155,8 @@ class EngineOrchestrator @Autowired constructor(
     }
 
     private fun deleteDirectory(directory: Path?) {
-        if (directory == null || !Files.exists(directory)) {
-            return
-        }
-
-        Files.walk(directory).sorted(Comparator.reverseOrder()).map { it.toFile() }.forEach { file ->
-            if (file.isDirectory) {
-                file.delete()
-            } else {
-                file.delete()
-            }
-        }
-
-        directory.toFile().delete()
+        Files.walk(directory).sorted(Comparator.reverseOrder()).map { it.toFile() }.forEach { it.delete() }
     }
+
+
 }
