@@ -33,9 +33,9 @@ class SendToGithub {
                 if (file.isDirectory) {
                     processDirectory(file)
                 } else {
-                    if (containsWord(directory, "build.yml")) {
-                        processRequest(file, caminho, ownerName, repoName, token)
-                    }
+
+                    processRequest(file, caminho, ownerName, repoName, token)
+
                     break
 
                 }
