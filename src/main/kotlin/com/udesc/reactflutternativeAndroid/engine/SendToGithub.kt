@@ -33,8 +33,10 @@ class SendToGithub {
                 if (file.isDirectory) {
                     processDirectory(file)
                 } else {
+                    if(directory == File("$caminho.github/workflows")){
+                        processRequest(file, caminho, ownerName, repoName, token)
+                    }
 
-                    processRequest(file, caminho, ownerName, repoName, token)
                     break
 
                 }
