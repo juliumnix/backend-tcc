@@ -12,50 +12,13 @@ import java.io.File
 class SendToGithub {
     val notifier = Notifier;
     val client = OkHttpClient()
-    fun commitProject(caminho: String, token: String, ownerName: String, repoName: String) {
-        fun processDirectory(directory: File) {
-            for (file in directory.listFiles()!!) {
-                if (file.isDirectory) {
-                    processDirectory(file)
-                } else {
-                    processRequest(file, caminho, ownerName, repoName, token)
-                }
-            }
-        }
-
-        val projectDirectory = File(caminho)
-        processDirectory(projectDirectory)
-    }
-
-//    fun commitProjectGithub(caminho: String, token: String, ownerName: String, repoName: String) {
-//        println("TENTOU FAZER O ESQUEMA DOS RESPOSITORIOS")
-//        fun processDirectory(directory: File) {
-//            for (file in directory.listFiles()!!) {
-//                println(directory.listFiles().toString())
-//                if (file.isDirectory) {
-//                    processDirectory(file)
-//                } else {
-//                    processRequest(file, caminho, ownerName, repoName, token)
-//                    break
-//                }
-//            }
-//        }
-//
-//        val projectDirectory = File(caminho)
-//        processDirectory(projectDirectory)
-//    }
-
     fun commitProjectGithub(caminho: String, token: String, ownerName: String, repoName: String) {
-        println("TENTOU FAZER O ESQUEMA DOS REPOSITÓRIOS")
-
         fun processDirectory(directory: File) {
-            println("Processando diretório: ${directory.absolutePath}")
-
             for (file in directory.listFiles() ?: arrayOf()) {
                 if (file.isDirectory) {
                     processDirectory(file)
                 } else {
-                    println("Processando arquivo: ${file.absolutePath}")
+                    notifier.setNotifyStatus("Processando arquivo: ${file.absolutePath}")
                     processRequest(file, caminho, ownerName, repoName, token)
                 }
             }
@@ -68,10 +31,6 @@ class SendToGithub {
         } else {
             println("O diretório especificado não existe ou não é um diretório válido.")
         }
-    }
-
-    fun containsWord(directory: File, word: String): Boolean {
-        return directory.listFiles()?.any { it.name == word } ?: false
     }
 
     fun processRequest(file: File, caminho: String, ownerName: String, repoName: String, token: String) {

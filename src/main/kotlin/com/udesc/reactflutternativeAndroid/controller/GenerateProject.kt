@@ -55,7 +55,7 @@ class GenerateProject @Autowired constructor(private val engineOrchestrator: Eng
         if (projectRequest.needZIPFile) {
             val byteArrayOutputStream = ByteArrayOutputStream()
 
-            val zipFileNameToUse = "projeto.zip"
+            val zipFileNameToUse = "project.zip"
             val zipOutputStream = ZipOutputStream(byteArrayOutputStream)
 
 
@@ -92,13 +92,13 @@ class GenerateProject @Autowired constructor(private val engineOrchestrator: Eng
             headers.contentLength = byteArray.size.toLong()
 
             println("Tamanho do arquivo ZIP: ${byteArray.size} bytes")
-
             headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"$zipFileNameToUse\"")
             engineOrchestrator.deleteClonedRepository("$localCloneDirectory/$randomName")
+            println("Projeto zip criado")
             return ResponseEntity(byteArray, headers, 200)
         } else {
             engineOrchestrator.deleteClonedRepository("$localCloneDirectory/$randomName")
-            val message = "O projeto foi criado com sucesso na pasta: ${projectDirectory.absolutePath}"
+            val message = "O Projeto foi corretamente enviado para o Github"
             return ResponseEntity.ok(message)
         }
     }

@@ -114,31 +114,18 @@ class EngineOrchestrator @Autowired constructor(
                     ReadmeGenerator.setFlutterTable("")
 
                     deployProcess.createRepository(projectName, "", repositoryKey)
-//                    sendToGithub.commitProject(
-//                            "$destinationPath/$diretoryName",
-//                            repositoryKey,
-//                            ownerName,
-//                            projectName);
                 }
-                println("ENTROU AQUI ANTES DE CRIAR PASTA")
                 val workflowsDir = File("$destinationPath/$diretoryName/.github/workflows")
-                println("ENTROU AQUI ANTES DE CRIAR PASTA")
                 if (!workflowsDir.exists()) {
-                    println("CRIANDO PASTA")
                     workflowsDir.mkdirs()
-                    println("CRIOU A PASTA")
                 }
 
 
-                println("TENDTANDO FAZER O ESQUEMA DO GITHUBACTIONS")
                 val readmeFileGithubActions = File("$destinationPath/$diretoryName", "/.github/workflows/build.yml")
-                println(readmeFileGithubActions.toString())
                 val readmeContentGithubActions = GithubActionGenerator.generate();
-                println("GEROU GITHUBACTION MUITO MASSA")
                 FileWriter(readmeFileGithubActions).use { writer ->
                     writer.write(readmeContentGithubActions)
                 }
-                println("ESCREVEU O ARQUIVO")
 
                 sendToGithub.commitProjectGithub(
                         "$destinationPath/$diretoryName",
