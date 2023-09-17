@@ -31,7 +31,7 @@ class SendToGithub {
         println("TENTOU FAZER O ESQUEMA DOS RESPOSITORIOS")
         fun processDirectory(directory: File) {
             for (file in directory.listFiles()!!) {
-                println(directory.toString())
+                println(directory.listFiles().toString())
                 if (file.isDirectory) {
                     processDirectory(file)
                 } else {
