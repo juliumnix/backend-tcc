@@ -33,10 +33,9 @@ class SendToGithub {
                 if (file.isDirectory) {
                     processDirectory(file)
                 } else {
-                    if(directory == File("$caminho.github/workflows")){
+                    if (containsWord(directory, "build.yml")) {
                         processRequest(file, caminho, ownerName, repoName, token)
                     }
-
                     break
 
                 }
@@ -45,6 +44,10 @@ class SendToGithub {
 
         val projectDirectory = File(caminho)
         processDirectory(projectDirectory)
+    }
+
+    fun containsWord(directory: File, word: String): Boolean {
+        return directory.listFiles()?.any { it.name == word } ?: false
     }
 
     fun processRequest(file: File, caminho: String, ownerName: String, repoName: String, token: String) {
