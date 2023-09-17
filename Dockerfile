@@ -1,5 +1,5 @@
 # Etapa 1: Construir a aplicação
-FROM windows11system/welcome-to-docker AS build
+FROM ubuntu:latest AS build
 RUN apt-get update && apt-get install -y openjdk-17-jdk
 WORKDIR /app
 COPY . .
