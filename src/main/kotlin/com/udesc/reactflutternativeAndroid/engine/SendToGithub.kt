@@ -27,25 +27,47 @@ class SendToGithub {
         processDirectory(projectDirectory)
     }
 
+//    fun commitProjectGithub(caminho: String, token: String, ownerName: String, repoName: String) {
+//        println("TENTOU FAZER O ESQUEMA DOS RESPOSITORIOS")
+//        fun processDirectory(directory: File) {
+//            for (file in directory.listFiles()!!) {
+//                println(directory.listFiles().toString())
+//                if (file.isDirectory) {
+//                    processDirectory(file)
+//                } else {
+//                    processRequest(file, caminho, ownerName, repoName, token)
+//                    break
+//                }
+//            }
+//        }
+//
+//        val projectDirectory = File(caminho)
+//        processDirectory(projectDirectory)
+//    }
+
     fun commitProjectGithub(caminho: String, token: String, ownerName: String, repoName: String) {
-        println("TENTOU FAZER O ESQUEMA DOS RESPOSITORIOS")
+        println("TENTOU FAZER O ESQUEMA DOS REPOSITÓRIOS")
+
         fun processDirectory(directory: File) {
-            for (file in directory.listFiles()!!) {
-                println(directory.listFiles().toString())
+            println("Processando diretório: ${directory.absolutePath}")
+
+            for (file in directory.listFiles() ?: arrayOf()) {
                 if (file.isDirectory) {
                     processDirectory(file)
                 } else {
-
+                    println("Processando arquivo: ${file.absolutePath}")
                     processRequest(file, caminho, ownerName, repoName, token)
-
-                    break
-
                 }
             }
         }
 
         val projectDirectory = File(caminho)
-        processDirectory(projectDirectory)
+
+        if (projectDirectory.exists() && projectDirectory.isDirectory) {
+            processDirectory(projectDirectory)
+        } else {
+            println("O diretório especificado não existe ou não é um diretório válido.")
+        }
     }
 
     fun containsWord(directory: File, word: String): Boolean {
