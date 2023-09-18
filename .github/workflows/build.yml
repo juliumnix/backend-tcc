@@ -14,11 +14,14 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v2
 
+    - name: Set Permissions for gradlew
+      run: chmod +x gradlew
+
     - name: Set up JDK
       uses: actions/setup-java@v2
       with:
         distribution: 'adopt'
-        java-version: '17' # ou '17', dependendo da sua necessidade
+        java-version: '11' # ou '17', dependendo da sua necessidade
 
     - name: Build and Test with Gradle
       run: ./gradlew clean test
