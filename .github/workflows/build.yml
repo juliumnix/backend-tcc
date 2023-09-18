@@ -1,4 +1,4 @@
-name: Build and Test
+name: Run Tests
 
 on:
   push:
@@ -7,20 +7,21 @@ on:
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
 
-    - name: Set up Java
+    - name: Set Permissions for gradlew
+      run: chmod +x gradlew
+
+    - name: Set up JDK
       uses: actions/setup-java@v2
       with:
         distribution: 'adopt'
-        java-version: '17' # ou a versão desejada do Java
+        java-version: '17' # ou '17', dependendo da sua necessidade
 
-    - name: Build with Gradle
-      run: ./gradlew build --info
-
-    - name: Test with Gradle
-      run: ./gradlew test --info
+    - name: Build and Test with Gradle
+      run: ./gradlew clean test
