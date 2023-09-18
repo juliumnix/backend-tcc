@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class NotifyController {
-    val notifier = Notifier
+    var notifier = Notifier
     @GetMapping("/notifier")
     fun getStatus(): ResponseEntity<NotifierResponse> {
         val content = notifier.getNotifyStatus()
