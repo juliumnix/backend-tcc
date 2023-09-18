@@ -3,7 +3,7 @@ name: Run Tests
 on:
   push:
     branches:
-      - main # Ajuste para a branch principal do seu projeto
+      - main
 
 jobs:
   build:
@@ -11,13 +11,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
+    - name: Checkout Repository
+      uses: actions/checkout@v2
 
-      - name: Set up JDK
-        uses: actions/setup-java@v2
-        with:
-          java-version: '17' # Ajuste para a versão do Java necessária
+    - name: Set up JDK
+      uses: actions/setup-java@v2
+      with:
+        distribution: 'adopt'
+        java-version: '17' # ou '17', dependendo da sua necessidade
 
-      - name: Build and Test with Gradle
-        run: ./gradlew clean test
+    - name: Build and Test with Gradle
+      run: ./gradlew clean test
