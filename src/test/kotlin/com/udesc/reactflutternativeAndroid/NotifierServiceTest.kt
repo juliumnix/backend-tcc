@@ -28,6 +28,8 @@ class NotifierServiceTest {
 
         Assertions.assertNotNull(updatedNotifier)
         Assertions.assertEquals("inactive", updatedNotifier?.getNotifyStatus("1"))
+
+        notifierService.deleteNotifier("1")
     }
 
     @Test
@@ -39,6 +41,7 @@ class NotifierServiceTest {
 
         Assertions.assertNotNull(notifier)
         Assertions.assertEquals("active", notifier?.getNotifyStatus("2"))
+        notifierService.deleteNotifier("2")
     }
 
     @Test
