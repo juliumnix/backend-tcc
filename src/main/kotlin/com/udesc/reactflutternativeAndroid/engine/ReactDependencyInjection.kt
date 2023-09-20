@@ -13,7 +13,6 @@ import java.lang.RuntimeException
 
 @Service
 class ReactDependencyInjection : DependencyInjector {
-    val notifier = Notifier;
 
     override fun injection(destinationPath: String, diretoryName: String, dependencies: List<Map<String, String>>) {
         try {
@@ -27,7 +26,6 @@ class ReactDependencyInjection : DependencyInjector {
                 val name = dependency["name"]
                 val version = dependency["version"]
                 ReadmeGenerator.setReactTable(ReadmeGenerator.generateReactTable() + "|  $name  | $version |  \n")
-                notifier.setNotifyStatus("Adicionando dependencia $name")
                 dependenciesNode.put(name, version)
             }
 

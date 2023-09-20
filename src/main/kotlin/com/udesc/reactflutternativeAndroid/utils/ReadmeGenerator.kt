@@ -42,7 +42,7 @@ object ReadmeGenerator {
                 "\n" +
                 "## Instalação\n" +
                 "\n" +
-                "Instale o projeto com com npm na raiz do projeto.\n" +
+                "Instale o projeto com npm na raiz do projeto.\n" +
                 "\n" +
                 "```\n" +
                 "  npm install \n" +

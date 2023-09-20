@@ -30,10 +30,10 @@ class EngineOrchestrator @Autowired constructor(
         private val reactDependencyInjection: ReactDependencyInjection,
         private val flutterDependencyInjection: FlutterDependencyInjection,
         private val deployProcess: DeployProcess,
-        private val changeNameProject: ChangeNameProject) {
+        private val changeNameProject: ChangeNameProject,
+        private val notifierService: NotifierService) {
 
     val sendToGithub = SendToGithub();
-    val notifier = Notifier
 
     fun init(
             arquitecture: String,
@@ -44,6 +44,7 @@ class EngineOrchestrator @Autowired constructor(
             projectName: String,
             ownerName: String,
             needZip: Boolean,
+            id: String
     ) {
         val repositoryUrl: String = when (arquitecture) {
             "mvvm" -> "https://github.com/juliumnix/mvvm-blank-project/archive/refs/heads/main.zip"
@@ -65,7 +66,6 @@ class EngineOrchestrator @Autowired constructor(
                 val diretoryName = entry?.name;
                 while (entry != null) {
                     val entryFile = File(destinationPath, entry.name)
-                    notifier.setNotifyStatus("Copiando arquivos localmente para modificação")
                     if (entry.isDirectory) {
                         entryFile.mkdirs()
                     } else {
@@ -86,7 +86,6 @@ class EngineOrchestrator @Autowired constructor(
 
                 if (diretoryName != null) {
                     if (arquitecture != "completo") {
-                        notifier.setNotifyStatus("Injetando dependencias do React")
                         ReadmeGenerator.setReactTable("\n" +
                                 "# Dependencias\n" +
                                 "\n" +
@@ -114,7 +113,9 @@ class EngineOrchestrator @Autowired constructor(
                     ReadmeGenerator.setFlutterTable("")
 
                     deployProcess.createRepository(projectName, "", repositoryKey)
+                    notifierService.createOrUpdateNotifier(id, "README.md gerado com sucesso **25%")
                 }
+
                 val workflowsDir = File("$destinationPath/$diretoryName/.github/workflows")
                 if (!workflowsDir.exists()) {
                     workflowsDir.mkdirs()
@@ -126,6 +127,8 @@ class EngineOrchestrator @Autowired constructor(
                 FileWriter(readmeFileGithubActions).use { writer ->
                     writer.write(readmeContentGithubActions)
                 }
+
+                notifierService.createOrUpdateNotifier(id, "Github actions geradas com sucesso **50%")
 
                 sendToGithub.commitProjectGithub(
                         "$destinationPath/$diretoryName",

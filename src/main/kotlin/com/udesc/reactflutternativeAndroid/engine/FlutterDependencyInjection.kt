@@ -13,7 +13,6 @@ import java.io.FileWriter
 
 @Service
 class FlutterDependencyInjection : DependencyInjector {
-    val notifier = Notifier;
     override fun injection(destinationPath: String, diretoryName: String, dependencies: List<Map<String, String>>) {
         try {
             val flutterModuleDirectory = File("$destinationPath/$diretoryName", "flutter_module")
@@ -37,7 +36,6 @@ class FlutterDependencyInjection : DependencyInjector {
                 val name = dependency["name"] as String
                 val version = dependency["version"] as String
                 ReadmeGenerator.setFlutterTable(ReadmeGenerator.generateFlutterTable() + "|  $name  | $version |  \n")
-                notifier.setNotifyStatus("Adicionando dependencia $name")
                 dependenciesNodeFlutter[name] = version
             }
 

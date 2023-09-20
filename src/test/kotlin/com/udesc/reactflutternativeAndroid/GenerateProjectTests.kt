@@ -39,7 +39,7 @@ class GenerateProjectTests {
     fun testCreateProjectWithZIPSuccess() {
         val projectRequest = ProjectArtifact(name = "TesteUnitario",
                 repositoryKey = "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",
-                ownerName = "juliumnix", organization = "organization",
+                ownerName = "juliumnix", id = "id123456",
                 architecture = "mvp", reactDependencies = listOf(
                 mapOf("name" to "@react-navigation/stack", "version" to "6.3.17"),
                 mapOf("name" to "axios", "version" to "1.5.0")),
@@ -54,7 +54,8 @@ class GenerateProjectTests {
                 projectRequest.repositoryKey,
                 projectRequest.name,
                 projectRequest.ownerName,
-                projectRequest.needZIPFile)
+                projectRequest.needZIPFile,
+                projectRequest.id)
         Mockito.doNothing().`when`(engineOrchestrator).deleteClonedRepository("$localCloneDirectory/$randomName")
 
         val responseEntity = generateProject.createProject(projectRequest)
