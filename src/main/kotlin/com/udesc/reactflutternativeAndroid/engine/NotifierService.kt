@@ -11,17 +11,15 @@ import java.nio.file.Paths
 @Service
 class NotifierService() {
 
-    private var baseDirectory: String = Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "logs").toString()
-
     private val notifiers = mutableMapOf<String, Notifier>()
 
     fun createOrUpdateNotifier(id: String, status: String) {
-        print("baseDirectory: $baseDirectory")
+        print("baseDirectory: ${Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "logs").toString()}")
         val existingNotifier = notifiers[id]
         if (existingNotifier != null) {
             existingNotifier.setNotifyStatus(id, status)
         } else {
-            val newNotifier = Notifier(id, baseDirectory)
+            val newNotifier = Notifier(id)
             newNotifier.setNotifyStatus(id, status)
             notifiers[id] = newNotifier
         }

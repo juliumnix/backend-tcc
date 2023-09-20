@@ -3,19 +3,17 @@ package com.udesc.reactflutternativeAndroid.model
 import org.springframework.beans.factory.annotation.Value
 import java.io.File
 import java.io.IOException
+import java.nio.file.Paths
 
-class Notifier(id: String, baseDiretory: String) {
-
-    private val localLogDirectory: String;
+class Notifier(id: String) {
 
     init {
-        this.localLogDirectory = baseDiretory
         createLogDirectory(id)
 
     }
 
     fun setNotifyStatus(id: String, value: String) {
-        val logFileName = "$localLogDirectory/$id.txt"
+        val logFileName = "${Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "logs")}/$id.txt"
         try {
             val logFile = File(logFileName)
             if (logFile.exists()) {
@@ -27,7 +25,7 @@ class Notifier(id: String, baseDiretory: String) {
     }
 
     fun getNotifyStatus(id: String): String {
-        val logFileName = "$localLogDirectory/$id.txt"
+        val logFileName = "${Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "logs")}/$id.txt"
         val logFile = File(logFileName)
         if (logFile.exists()) {
             try {
@@ -40,7 +38,7 @@ class Notifier(id: String, baseDiretory: String) {
     }
 
     fun deleteLog(id: String) {
-        val logFileName = "$localLogDirectory/$id.txt"
+        val logFileName = "${Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "logs")}/$id.txt"
         val logFile = File(logFileName)
         if (logFile.exists()) {
             try {
@@ -52,7 +50,7 @@ class Notifier(id: String, baseDiretory: String) {
     }
 
     private fun createLogDirectory(id: String) {
-        val logFileName = "$localLogDirectory/$id.txt"
+        val logFileName = "${Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "logs").toString()}/$id.txt"
         print(logFileName)
         try {
             File(logFileName).createNewFile()
