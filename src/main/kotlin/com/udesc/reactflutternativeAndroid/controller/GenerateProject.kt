@@ -4,11 +4,13 @@ import com.udesc.reactflutternativeAndroid.engine.EngineOrchestrator
 import com.udesc.reactflutternativeAndroid.engine.NotifierService
 import com.udesc.reactflutternativeAndroid.model.Notifier
 import com.udesc.reactflutternativeAndroid.model.ProjectArtifact
+import com.udesc.reactflutternativeAndroid.utils.LocalNotifierPath
 import com.udesc.reactflutternativeAndroid.utils.RandomizerName
 import okhttp3.internal.http.HttpMethod
 import org.apache.commons.io.FileUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.cglib.core.Local
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -35,6 +37,7 @@ class GenerateProject @Autowired constructor(private val engineOrchestrator: Eng
 
     @Value("\${git.localCloneDirectory}")
     private val localCloneDirectory: String? = null
+
 
 
     @PostMapping("/create")

@@ -1,23 +1,17 @@
 package com.udesc.reactflutternativeAndroid.engine
 
 import com.udesc.reactflutternativeAndroid.model.Notifier
+import com.udesc.reactflutternativeAndroid.utils.LocalNotifierPath
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Service
+import java.nio.file.Paths
 
 @Service
-class NotifierService (private val baseDirectory: String){
-    @Configuration
-    class AppConfig {
-        @Value("\${log.localDiretory}")
-        private lateinit var baseDirectory: String
+class NotifierService() {
 
-        @Bean
-        fun baseDirectory(): String {
-            return baseDirectory
-        }
-    }
+    private var baseDirectory: String = Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "logs").toString()
 
     private val notifiers = mutableMapOf<String, Notifier>()
 
