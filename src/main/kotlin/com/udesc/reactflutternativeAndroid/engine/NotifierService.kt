@@ -22,6 +22,7 @@ class NotifierService (private val baseDirectory: String){
     private val notifiers = mutableMapOf<String, Notifier>()
 
     fun createOrUpdateNotifier(id: String, status: String) {
+        print("baseDirectory: $baseDirectory")
         val existingNotifier = notifiers[id]
         if (existingNotifier != null) {
             existingNotifier.setNotifyStatus(id, status)
