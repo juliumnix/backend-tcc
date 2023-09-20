@@ -27,7 +27,7 @@ jobs:
       
   deploy:
     name: Deploy
-    needs: [test] # Our tests must pass in order to run the deploy job
+    needs: [test]
     runs-on: ubuntu-latest
 
     steps: 
