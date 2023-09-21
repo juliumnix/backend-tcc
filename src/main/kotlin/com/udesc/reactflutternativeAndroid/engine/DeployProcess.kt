@@ -15,6 +15,7 @@ import java.util.zip.ZipOutputStream
 
 @Service
 class DeployProcess() {
+    val notifier = Notifier
     private val client = OkHttpClient()
 
     fun createRepository(repositoryName: String, description: String, githubToken: String) {
@@ -28,16 +29,18 @@ class DeployProcess() {
 
         val requestBody = RequestBody.create("application/json".toMediaTypeOrNull(), json)
         val request = Request.Builder()
-                .url(url)
-                .header("Authorization", "token $githubToken")
-                .post(requestBody)
-                .build()
+            .url(url)
+            .header("Authorization", "token $githubToken")
+            .post(requestBody)
+            .build()
 
         client.newCall(request).execute().use { response ->
             if (response.isSuccessful) {
                 println("Repositório criado com sucesso.")
+                notifier.setNotifyStatus("Repositório criado com sucesso.")
             } else {
                 println("Falha ao criar o repositório. Código de resposta: ${response.code}")
+                notifier.setNotifyStatus("Falha ao criar o repositório. Código de resposta: ${response.code}")
             }
         }
     }

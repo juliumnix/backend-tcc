@@ -1,8 +1,11 @@
 package com.udesc.reactflutternativeAndroid.controller
 
 import com.udesc.reactflutternativeAndroid.engine.EngineOrchestrator
-import com.udesc.reactflutternativeAndroid.engine.NotifierService
+import com.udesc.reactflutternativeAndroid.model.Notifier
 import com.udesc.reactflutternativeAndroid.model.ProjectArtifact
+import com.udesc.reactflutternativeAndroid.utils.RandomizerName
+import okhttp3.internal.http.HttpMethod
+import org.apache.commons.io.FileUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
@@ -12,38 +15,43 @@ import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.context.request.RequestContextHolder
+import org.springframework.web.context.request.ServletRequestAttributes
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.Serializable
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import kotlin.random.Random
 
 @RestController
 @EnableAsync
-class GenerateProject @Autowired constructor(private val engineOrchestrator: EngineOrchestrator, private val notifierService: NotifierService) {
+class GenerateProject @Autowired constructor(private val engineOrchestrator: EngineOrchestrator) {
+    private val notifier: Notifier = Notifier;
 
     @Value("\${git.localCloneDirectory}")
     private val localCloneDirectory: String? = null
 
 
-
     @PostMapping("/create")
     fun createProject(@RequestBody projectRequest: ProjectArtifact): ResponseEntity<out Serializable> {
-        val randomName = projectRequest.id
-        notifierService.createOrUpdateNotifier(projectRequest.id, "Criando projeto **0%")
-        val projectDirectory = File("$localCloneDirectory/${projectRequest.id}")
+        notifier.setNotifyStatus("Criando projeto")
+        val randomName = RandomizerName.generateRandomName(10)
+        val projectDirectory = File("$localCloneDirectory/$randomName")
         engineOrchestrator.init(
-                projectRequest.architecture,
-                "$localCloneDirectory/${projectRequest.id}",
-                projectRequest.reactDependencies,
-                projectRequest.flutterDependencies,
-                projectRequest.repositoryKey,
-                projectRequest.name,
-                projectRequest.ownerName,
-                projectRequest.needZIPFile,
-                projectRequest.id)
-        notifierService.createOrUpdateNotifier(projectRequest.id, "Projeto criado e enviado para o github **90%")
+            projectRequest.architecture,
+            "$localCloneDirectory/${randomName}",
+            projectRequest.reactDependencies,
+            projectRequest.flutterDependencies,
+            projectRequest.repositoryKey,
+            projectRequest.name,
+            projectRequest.ownerName,
+            projectRequest.needZIPFile)
+
         if (projectRequest.needZIPFile) {
             val byteArrayOutputStream = ByteArrayOutputStream()
 
@@ -85,15 +93,11 @@ class GenerateProject @Autowired constructor(private val engineOrchestrator: Eng
 
             println("Tamanho do arquivo ZIP: ${byteArray.size} bytes")
             headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"$zipFileNameToUse\"")
-            notifierService.createOrUpdateNotifier(projectRequest.id, "ZIP Criado **100%")
             engineOrchestrator.deleteClonedRepository("$localCloneDirectory/$randomName")
-            notifierService.deleteNotifier(projectRequest.id)
             println("Projeto zip criado")
             return ResponseEntity(byteArray, headers, 200)
         } else {
-            notifierService.createOrUpdateNotifier(projectRequest.id, "O Projeto foi corretamente enviado para o Github **100%")
             engineOrchestrator.deleteClonedRepository("$localCloneDirectory/$randomName")
-            notifierService.deleteNotifier(projectRequest.id)
             val message = "O Projeto foi corretamente enviado para o Github"
             return ResponseEntity.ok(message)
         }

@@ -30,11 +30,10 @@ class EngineOrchestrator @Autowired constructor(
     private val reactDependencyInjection: ReactDependencyInjection,
     private val flutterDependencyInjection: FlutterDependencyInjection,
     private val deployProcess: DeployProcess,
-    private val changeNameProject: ChangeNameProject,
-    private val notifierService: NotifierService
-) {
+    private val changeNameProject: ChangeNameProject) {
 
     val sendToGithub = SendToGithub();
+    val notifier = Notifier
 
     fun init(
         arquitecture: String,
@@ -45,7 +44,6 @@ class EngineOrchestrator @Autowired constructor(
         projectName: String,
         ownerName: String,
         needZip: Boolean,
-        id: String
     ) {
         val repositoryUrl: String = when (arquitecture) {
             "mvvm" -> "https://github.com/juliumnix/mvvm-blank-project/archive/refs/heads/main.zip"
@@ -67,6 +65,7 @@ class EngineOrchestrator @Autowired constructor(
                 val diretoryName = entry?.name;
                 while (entry != null) {
                     val entryFile = File(destinationPath, entry.name)
+                    notifier.setNotifyStatus("Copiando arquivos localmente para modificação")
                     if (entry.isDirectory) {
                         entryFile.mkdirs()
                     } else {
@@ -87,22 +86,19 @@ class EngineOrchestrator @Autowired constructor(
 
                 if (diretoryName != null) {
                     if (arquitecture != "completo") {
-                        ReadmeGenerator.setReactTable(
-                            "\n" +
-                                    "# Dependencias\n" +
-                                    "\n" +
-                                    "React Native\n" +
-                                    "\n" +
-                                    "| Dependencia |  Versão  |\n" +
-                                    "|:-----|:--------:|\n"
-                        )
+                        notifier.setNotifyStatus("Injetando dependencias do React")
+                        ReadmeGenerator.setReactTable("\n" +
+                                "# Dependencias\n" +
+                                "\n" +
+                                "React Native\n" +
+                                "\n" +
+                                "| Dependencia |  Versão  |\n" +
+                                "|:-----|:--------:|\n")
                         reactDependencyInjection.injection(destinationPath, diretoryName, reactDependencies)
-                        ReadmeGenerator.setFlutterTable(
-                            "Flutter\n" +
-                                    "\n" +
-                                    "| Dependencia |  Versão  |\n" +
-                                    "|:-----|:--------:|\n"
-                        )
+                        ReadmeGenerator.setFlutterTable("Flutter\n" +
+                                "\n" +
+                                "| Dependencia |  Versão  |\n" +
+                                "|:-----|:--------:|\n")
                         flutterDependencyInjection.injection(destinationPath, diretoryName, flutterDependencies)
                         changeNameProject.changeSettingsGradle("$destinationPath/$diretoryName", projectName)
                         changeNameProject.changeStringXML("$destinationPath/$diretoryName", projectName)
@@ -118,9 +114,7 @@ class EngineOrchestrator @Autowired constructor(
                     ReadmeGenerator.setFlutterTable("")
 
                     deployProcess.createRepository(projectName, "", repositoryKey)
-                    notifierService.createOrUpdateNotifier(id, "README.md gerado com sucesso **25%")
                 }
-
                 val workflowsDir = File("$destinationPath/$diretoryName/.github/workflows")
                 if (!workflowsDir.exists()) {
                     workflowsDir.mkdirs()
@@ -133,14 +127,11 @@ class EngineOrchestrator @Autowired constructor(
                     writer.write(readmeContentGithubActions)
                 }
 
-                notifierService.createOrUpdateNotifier(id, "Github actions geradas com sucesso **50%")
-
                 sendToGithub.commitProjectGithub(
                     "$destinationPath/$diretoryName",
                     repositoryKey,
                     ownerName,
-                    projectName
-                );
+                    projectName);
 
 
             } else {

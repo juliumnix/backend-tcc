@@ -18,7 +18,7 @@ class AvailableAPITests {
     @Test
     fun testGetAvailableAPI() {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/available"))
-                .andExpect(MockMvcResultMatchers.status().isOk)
-                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(true))
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(true))
     }
 }
