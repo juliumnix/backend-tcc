@@ -33,6 +33,7 @@ class Notifier(id: String) {
     fun getNotifyStatus(id: String): String {
         val logFileName = "src/main/resources/$id.txt"
         val logFile = File(logFileName)
+
         if (logFile.exists()) {
             try {
                 println(logFile.readText())
