@@ -135,14 +135,12 @@ class EngineOrchestrator @Autowired constructor(
 
                 notifierService.createOrUpdateNotifier(id, "Github actions geradas com sucesso **50%")
 
-//                sendToGithub.commitProjectGithub(
-//                    "$destinationPath/$diretoryName",
-//                    repositoryKey,
-//                    ownerName,
-//                    projectName
-//                );
-
-                Thread.sleep(2000)
+                sendToGithub.commitProjectGithub(
+                    "$destinationPath/$diretoryName",
+                    repositoryKey,
+                    ownerName,
+                    projectName
+                );
 
 
             } else {

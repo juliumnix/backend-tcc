@@ -19,7 +19,7 @@ class Notifier(id: String) {
             val logFile = File(logFileName)
             if (logFile.exists()) {
                 println("entrou aqui no metodo do set")
-                logFile.writeText("aaaaaaaaaaaa")
+                logFile.writeText("\n")
                 BufferedWriter(FileWriter(logFile, true)).use { writer ->
                     writer.append(value)
                 }
