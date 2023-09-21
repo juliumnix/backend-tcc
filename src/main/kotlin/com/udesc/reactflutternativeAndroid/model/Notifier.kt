@@ -1,9 +1,9 @@
 package com.udesc.reactflutternativeAndroid.model
 
-import org.springframework.beans.factory.annotation.Value
+import java.io.BufferedWriter
 import java.io.File
+import java.io.FileWriter
 import java.io.IOException
-import java.nio.file.Paths
 
 class Notifier(id: String) {
 
@@ -13,11 +13,13 @@ class Notifier(id: String) {
     }
 
     fun setNotifyStatus(id: String, value: String) {
-        val logFileName = "${Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "logs")}/$id.txt"
+        val logFileName = "src/main/resources/logs/$id.txt"
         try {
             val logFile = File(logFileName)
             if (logFile.exists()) {
-                File(logFileName).writeText(value)
+                BufferedWriter(FileWriter(logFile, true)).use { writer ->
+                    writer.append(value)
+                }
             }
         } catch (e: IOException) {
             e.printStackTrace()
@@ -25,7 +27,7 @@ class Notifier(id: String) {
     }
 
     fun getNotifyStatus(id: String): String {
-        val logFileName = "${Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "logs")}/$id.txt"
+        val logFileName = "src/main/resources/logs/$id.txt"
         val logFile = File(logFileName)
         if (logFile.exists()) {
             try {
@@ -38,7 +40,7 @@ class Notifier(id: String) {
     }
 
     fun deleteLog(id: String) {
-        val logFileName = "${Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "logs")}/$id.txt"
+        val logFileName = "src/main/resources/logs/$id.txt"
         val logFile = File(logFileName)
         if (logFile.exists()) {
             try {
@@ -50,7 +52,7 @@ class Notifier(id: String) {
     }
 
     private fun createLogDirectory(id: String) {
-        val logFileName = "${Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "logs").toString()}/$id.txt"
+        val logFileName = "src/main/resources/logs/$id.txt"
         print(logFileName)
         try {
             File(logFileName).createNewFile()

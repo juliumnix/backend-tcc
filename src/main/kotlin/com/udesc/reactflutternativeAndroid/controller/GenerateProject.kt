@@ -2,15 +2,9 @@ package com.udesc.reactflutternativeAndroid.controller
 
 import com.udesc.reactflutternativeAndroid.engine.EngineOrchestrator
 import com.udesc.reactflutternativeAndroid.engine.NotifierService
-import com.udesc.reactflutternativeAndroid.model.Notifier
 import com.udesc.reactflutternativeAndroid.model.ProjectArtifact
-import com.udesc.reactflutternativeAndroid.utils.LocalNotifierPath
-import com.udesc.reactflutternativeAndroid.utils.RandomizerName
-import okhttp3.internal.http.HttpMethod
-import org.apache.commons.io.FileUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.cglib.core.Local
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -18,18 +12,12 @@ import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.context.request.RequestContextHolder
-import org.springframework.web.context.request.ServletRequestAttributes
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.Serializable
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
-import kotlin.random.Random
 
 @RestController
 @EnableAsync

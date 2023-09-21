@@ -27,24 +27,25 @@ import java.util.zip.ZipInputStream
 
 @Service
 class EngineOrchestrator @Autowired constructor(
-        private val reactDependencyInjection: ReactDependencyInjection,
-        private val flutterDependencyInjection: FlutterDependencyInjection,
-        private val deployProcess: DeployProcess,
-        private val changeNameProject: ChangeNameProject,
-        private val notifierService: NotifierService) {
+    private val reactDependencyInjection: ReactDependencyInjection,
+    private val flutterDependencyInjection: FlutterDependencyInjection,
+    private val deployProcess: DeployProcess,
+    private val changeNameProject: ChangeNameProject,
+    private val notifierService: NotifierService
+) {
 
     val sendToGithub = SendToGithub();
 
     fun init(
-            arquitecture: String,
-            destinationPath: String,
-            reactDependencies: List<Map<String, String>>,
-            flutterDependencies: List<Map<String, String>>,
-            repositoryKey: String,
-            projectName: String,
-            ownerName: String,
-            needZip: Boolean,
-            id: String
+        arquitecture: String,
+        destinationPath: String,
+        reactDependencies: List<Map<String, String>>,
+        flutterDependencies: List<Map<String, String>>,
+        repositoryKey: String,
+        projectName: String,
+        ownerName: String,
+        needZip: Boolean,
+        id: String
     ) {
         val repositoryUrl: String = when (arquitecture) {
             "mvvm" -> "https://github.com/juliumnix/mvvm-blank-project/archive/refs/heads/main.zip"
@@ -86,18 +87,22 @@ class EngineOrchestrator @Autowired constructor(
 
                 if (diretoryName != null) {
                     if (arquitecture != "completo") {
-                        ReadmeGenerator.setReactTable("\n" +
-                                "# Dependencias\n" +
-                                "\n" +
-                                "React Native\n" +
-                                "\n" +
-                                "| Dependencia |  Versão  |\n" +
-                                "|:-----|:--------:|\n")
+                        ReadmeGenerator.setReactTable(
+                            "\n" +
+                                    "# Dependencias\n" +
+                                    "\n" +
+                                    "React Native\n" +
+                                    "\n" +
+                                    "| Dependencia |  Versão  |\n" +
+                                    "|:-----|:--------:|\n"
+                        )
                         reactDependencyInjection.injection(destinationPath, diretoryName, reactDependencies)
-                        ReadmeGenerator.setFlutterTable("Flutter\n" +
-                                "\n" +
-                                "| Dependencia |  Versão  |\n" +
-                                "|:-----|:--------:|\n")
+                        ReadmeGenerator.setFlutterTable(
+                            "Flutter\n" +
+                                    "\n" +
+                                    "| Dependencia |  Versão  |\n" +
+                                    "|:-----|:--------:|\n"
+                        )
                         flutterDependencyInjection.injection(destinationPath, diretoryName, flutterDependencies)
                         changeNameProject.changeSettingsGradle("$destinationPath/$diretoryName", projectName)
                         changeNameProject.changeStringXML("$destinationPath/$diretoryName", projectName)
@@ -131,10 +136,11 @@ class EngineOrchestrator @Autowired constructor(
                 notifierService.createOrUpdateNotifier(id, "Github actions geradas com sucesso **50%")
 
                 sendToGithub.commitProjectGithub(
-                        "$destinationPath/$diretoryName",
-                        repositoryKey,
-                        ownerName,
-                        projectName);
+                    "$destinationPath/$diretoryName",
+                    repositoryKey,
+                    ownerName,
+                    projectName
+                );
 
 
             } else {
