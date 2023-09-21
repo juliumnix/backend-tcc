@@ -13,14 +13,17 @@ class Notifier(id: String) {
     }
 
     fun setNotifyStatus(id: String, value: String) {
+        println(value)
         val logFileName = "src/main/resources/$id.txt"
         try {
             val logFile = File(logFileName)
             if (logFile.exists()) {
-                logFile.writeText("")
+                println("entrou aqui no metodo do set")
+                logFile.writeText("aaaaaaaaaaaa")
                 BufferedWriter(FileWriter(logFile, true)).use { writer ->
                     writer.append(value)
                 }
+                println("teoricamente ele escreveu")
             }
         } catch (e: IOException) {
             e.printStackTrace()
@@ -32,6 +35,7 @@ class Notifier(id: String) {
         val logFile = File(logFileName)
         if (logFile.exists()) {
             try {
+                println(logFile.readText())
                 return logFile.readText()
             } catch (e: IOException) {
                 e.printStackTrace()
@@ -54,7 +58,6 @@ class Notifier(id: String) {
 
     private fun createLogDirectory(id: String) {
         val logFileName = "src/main/resources/$id.txt"
-        print(logFileName)
         try {
             File(logFileName).createNewFile()
         } catch (e: IOException) {
