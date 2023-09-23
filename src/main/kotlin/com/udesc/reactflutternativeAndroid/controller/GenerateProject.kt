@@ -3,17 +3,22 @@ package com.udesc.reactflutternativeAndroid.controller
 import com.udesc.reactflutternativeAndroid.engine.EngineOrchestrator
 import com.udesc.reactflutternativeAndroid.model.Notifier
 import com.udesc.reactflutternativeAndroid.model.ProjectArtifact
+import com.udesc.reactflutternativeAndroid.utils.ClientsSinks
 import com.udesc.reactflutternativeAndroid.utils.RandomizerName
 import okhttp3.internal.http.HttpMethod
 import org.apache.commons.io.FileUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.scheduling.annotation.EnableAsync
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
@@ -30,7 +35,10 @@ import kotlin.random.Random
 
 @RestController
 @EnableAsync
-class GenerateProject @Autowired constructor(private val engineOrchestrator: EngineOrchestrator) {
+class GenerateProject @Autowired constructor(
+    private val engineOrchestrator: EngineOrchestrator,
+    private val serverEventsController: ServerEventsController
+) {
     private val notifier: Notifier = Notifier;
 
     @Value("\${git.localCloneDirectory}")
@@ -40,7 +48,10 @@ class GenerateProject @Autowired constructor(private val engineOrchestrator: Eng
     @PostMapping("/create")
     fun createProject(@RequestBody projectRequest: ProjectArtifact): ResponseEntity<out Serializable> {
         notifier.setNotifyStatus("Criando projeto")
+        ClientsSinks.setContent(projectRequest.id, "{\"message\":\"Iniciando o projeto\"}")
+        serverEventsController.atualizarConteudo(projectRequest.id, "{\"message\":\"Iniciando o projeto\"}")
         val randomName = RandomizerName.generateRandomName(10)
+
         val projectDirectory = File("$localCloneDirectory/$randomName")
         engineOrchestrator.init(
             projectRequest.architecture,
@@ -50,12 +61,15 @@ class GenerateProject @Autowired constructor(private val engineOrchestrator: Eng
             projectRequest.repositoryKey,
             projectRequest.name,
             projectRequest.ownerName,
-            projectRequest.needZIPFile)
+            projectRequest.needZIPFile
+        )
+
+        serverEventsController.atualizarConteudo(projectRequest.id, "{\"message\":\"Projeto criado\"}")
 
         if (projectRequest.needZIPFile) {
             val byteArrayOutputStream = ByteArrayOutputStream()
-
-            val zipFileNameToUse = "project.zip"
+            val zipFileNameToUse = "${projectRequest.id}-project.zip"
+            val zipFilePath = "$localCloneDirectory/$zipFileNameToUse"
             val zipOutputStream = ZipOutputStream(byteArrayOutputStream)
 
 
@@ -86,6 +100,10 @@ class GenerateProject @Autowired constructor(private val engineOrchestrator: Eng
                 zipOutputStream.close()
             }
 
+            val zipFile = File(zipFilePath)
+            FileUtils.writeByteArrayToFile(zipFile, byteArrayOutputStream.toByteArray())
+
+
             val byteArray = byteArrayOutputStream.toByteArray()
             val headers = HttpHeaders()
             headers.contentType = MediaType.parseMediaType("application/zip")
@@ -95,11 +113,46 @@ class GenerateProject @Autowired constructor(private val engineOrchestrator: Eng
             headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"$zipFileNameToUse\"")
             engineOrchestrator.deleteClonedRepository("$localCloneDirectory/$randomName")
             println("Projeto zip criado")
-            return ResponseEntity(byteArray, headers, 200)
+            serverEventsController.atualizarConteudo(
+                projectRequest.id,
+                "{\"message\":\"Projeto criado e enviado para o Github, aproveite =)\"}"
+            )
+            val message = "O Projeto foi corretamente enviado para o Github"
+            return ResponseEntity.ok(message)
         } else {
             engineOrchestrator.deleteClonedRepository("$localCloneDirectory/$randomName")
             val message = "O Projeto foi corretamente enviado para o Github"
+            serverEventsController.atualizarConteudo(
+                projectRequest.id,
+                "{\"message\":\"Projeto criado e enviado para o Github, aproveite =)\"}"
+            )
             return ResponseEntity.ok(message)
+        }
+    }
+
+
+    @GetMapping("/{id}/download-zip")
+    @ResponseBody
+    fun downloadZip(@PathVariable id: String): ResponseEntity<ByteArray> {
+        val zipFileName = "$id-project.zip"
+        val zipFilePath = "$localCloneDirectory/$zipFileName"
+        val zipFile = File(zipFilePath)
+
+        if (!zipFile.exists()) {
+            return ResponseEntity.notFound().build()
+        }
+
+        val fileBytes = FileUtils.readFileToByteArray(zipFile)
+        val headers = HttpHeaders()
+        headers.contentType = MediaType.APPLICATION_OCTET_STREAM
+        headers.contentLength = fileBytes.size.toLong()
+        headers.setContentDispositionFormData("attachment", zipFileName)
+
+        // Exclua o arquivo ZIP após o download
+        if (zipFile.delete()) {
+            return ResponseEntity(fileBytes, headers, HttpStatus.OK)
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
         }
     }
 

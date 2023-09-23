@@ -24,6 +24,7 @@ dependencies {
 	implementation 'org.jetbrains.kotlin:kotlin-reflect'
 	implementation 'org.eclipse.jgit:org.eclipse.jgit:6.6.0.202305301015-r'
 	implementation 'commons-io:commons-io:2.11.0'
+	implementation "io.projectreactor:reactor-core:3.5.10"
 	implementation "org.yaml:snakeyaml:1.29"
 	implementation "com.squareup.okhttp3:okhttp:4.9.1"
 	implementation "io.ktor:ktor-client-core:2.3.2"
