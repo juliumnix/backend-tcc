@@ -1,7 +1,9 @@
 package com.udesc.reactflutternativeAndroid.utils
 
-object GithubActionGenerator {
-    fun generate() : String{
+import com.udesc.reactflutternativeAndroid.adapter.Generator
+
+object GithubActionGenerator: Generator {
+    override fun generate() : String{
         return "name: Build and Verify\n" +
                 "\n" +
                 "on:\n" +

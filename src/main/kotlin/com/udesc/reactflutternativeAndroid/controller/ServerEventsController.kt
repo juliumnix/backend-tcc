@@ -18,11 +18,11 @@ class ServerEventsController(private val contentHolder: ContentHolder) {
     @GetMapping("/{id}", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun getEvents(@PathVariable id: String): Flux<ServerSentEvent<String?>> {
         val initialContent = contentHolder.getContent(id)
-        return disparaEvento(id, initialContent)
+        return sendEvent(id, initialContent)
     }
 
 
-    fun disparaEvento(id: String, initialContent: String): Flux<ServerSentEvent<String?>> {
+    fun sendEvent(id: String, initialContent: String): Flux<ServerSentEvent<String?>> {
         return Flux.interval(Duration.ofMillis(300))
             .map {
                 val conteudo = contentHolder.getContent(id)
@@ -33,13 +33,13 @@ class ServerEventsController(private val contentHolder: ContentHolder) {
             }
     }
 
-    fun atualizarConteudo(id: String, novoConteudo: String) {
+    fun updateSSEContent(id: String, novoConteudo: String) {
         contentHolder.updateContent(id, novoConteudo)
     }
 
 
     @GetMapping("/remove/{id}")
-    fun removerConteudo(@PathVariable id: String): ResponseEntity<RemoveSSE> {
+    fun removeContent(@PathVariable id: String): ResponseEntity<RemoveSSE> {
         if (contentHolder.removeContent(id)) {
             val removeSSE = RemoveSSE(true)
             return ResponseEntity.status(HttpStatus.OK).body(removeSSE)

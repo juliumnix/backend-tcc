@@ -1,14 +1,13 @@
 package com.udesc.reactflutternativeAndroid.engine
 
-import com.udesc.reactflutternativeAndroid.model.Notifier
-import org.springframework.stereotype.Service
+import com.udesc.reactflutternativeAndroid.controller.ServerEventsController
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
 
-@Service
-class ChangeNameProject {
-    val notifier = Notifier
+
+class ChangeNameProject( private val serverEventsController: ServerEventsController, private val id: String) {
+
     fun changeSettingsGradle(basePath: String, newName: String) {
         val pastaDoProjeto = findAndroidPackage(basePath)
 
@@ -32,18 +31,18 @@ class ChangeNameProject {
                     writer.close()
 
                     println("Nome no settings.gradle alterado para '$newName'")
-                    notifier.setNotifyStatus("Nome no settings.gradle alterado para '$newName'\"")
+                    serverEventsController.updateSSEContent(id, "{\"message\":\"Nome no settings.gradle alterado para '$newName'\"}")
                 } else {
-                    notifier.setNotifyStatus("O arquivo settings.gradle não foi encontrado em $caminhoSettingsGradle")
+                    serverEventsController.updateSSEContent(id, "{\"message\":\"O arquivo settings.gradle não foi encontrado em $caminhoSettingsGradle\"}")
                     println("O arquivo settings.gradle não foi encontrado em $caminhoSettingsGradle")
                 }
             } catch (e: IOException) {
                 println("Erro ao alterar o nome no settings.gradle: ${e.message}")
-                notifier.setNotifyStatus("Erro ao alterar o nome no settings.gradle: ${e.message}")
+                serverEventsController.updateSSEContent(id, "{\"message\":\"Erro ao alterar o nome no settings.gradle: ${e.message}\"}")
             }
         } else {
             println("Pasta do projeto Android não encontrada.")
-            notifier.setNotifyStatus("Pasta do projeto Android não encontrada.")
+            serverEventsController.updateSSEContent(id, "{\"message\":\"Pasta do projeto Android não encontrada.\"}")
         }
     }
 

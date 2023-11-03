@@ -1,6 +1,8 @@
 package com.udesc.reactflutternativeAndroid.utils
 
-object ReadmeGenerator {
+import com.udesc.reactflutternativeAndroid.adapter.Generator
+
+object ReadmeGenerator: Generator {
     private var reactTable: String = ""
     private var flutterTable: String = ""
 
@@ -21,7 +23,7 @@ object ReadmeGenerator {
     }
 
 
-    fun generate(): String {
+    override fun generate(): String {
         return "# Instruções para rodar seu projeto\n" +
                 "\n" +
                 "Para buildar seu app, será necessário alguns pré-requisitos:\n" +

@@ -9,10 +9,10 @@ class ContentHolder {
     @Synchronized
     fun getContent(id: String): String {
         if (contentMap.containsKey(id)) {
-            return contentMap.getOrDefault(id, "{\"message\":\"Conteúdo inicial para ${id}\"}")
+            return contentMap.getOrDefault(id, "{\"message\":\"Iniciando para ${id}\"}")
         }
-        contentMap[id] = "{\"message\":\"Conteúdo inicial para ${id}\"}"
-        return contentMap.getOrDefault(id, "{\"message\":\"Conteúdo inicial para ${id}\"}")
+        contentMap[id] = "{\"message\":\"Iniciando para ${id}\"}"
+        return contentMap.getOrDefault(id, "{\"message\":\"Iniciando para ${id}\"}")
     }
 
     @Synchronized

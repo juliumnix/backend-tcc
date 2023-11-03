@@ -1,19 +1,12 @@
 package com.udesc.reactflutternativeAndroid.engine
 
-import com.udesc.reactflutternativeAndroid.model.Notifier
+import com.udesc.reactflutternativeAndroid.controller.ServerEventsController
 import com.udesc.reactflutternativeAndroid.utils.GithubActionGenerator
 import com.udesc.reactflutternativeAndroid.utils.ReadmeGenerator
 import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
 import java.io.File
 import org.springframework.stereotype.Service
-import org.springframework.web.client.RestTemplate
 import java.io.FileOutputStream
 import java.io.FileWriter
 import java.io.IOException
@@ -21,7 +14,6 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.Base64
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
@@ -30,12 +22,13 @@ class EngineOrchestrator @Autowired constructor(
     private val reactDependencyInjection: ReactDependencyInjection,
     private val flutterDependencyInjection: FlutterDependencyInjection,
     private val deployProcess: DeployProcess,
-    private val changeNameProject: ChangeNameProject) {
+    private val serverEventsController: ServerEventsController,
+    ) {
 
-    val sendToGithub = SendToGithub();
-    val notifier = Notifier
+
 
     fun init(
+        id: String,
         arquitecture: String,
         destinationPath: String,
         reactDependencies: List<Map<String, String>>,
@@ -45,6 +38,8 @@ class EngineOrchestrator @Autowired constructor(
         ownerName: String,
         needZip: Boolean,
     ) {
+        val sendToGithub = SendToGithub(serverEventsController, id);
+        val changeNameProject: ChangeNameProject = ChangeNameProject(serverEventsController, id);
         val repositoryUrl: String = when (arquitecture) {
             "mvvm" -> "https://github.com/juliumnix/mvvm-blank-project/archive/refs/heads/main.zip"
             "mvp" -> "https://github.com/juliumnix/mvp-blank-project/archive/refs/heads/main.zip"
@@ -65,7 +60,7 @@ class EngineOrchestrator @Autowired constructor(
                 val diretoryName = entry?.name;
                 while (entry != null) {
                     val entryFile = File(destinationPath, entry.name)
-                    notifier.setNotifyStatus("Copiando arquivos localmente para modificação")
+                    serverEventsController.updateSSEContent(id, "{\"message\":\"Copiando arquivos localmente para modificação\"}")
                     if (entry.isDirectory) {
                         entryFile.mkdirs()
                     } else {
@@ -86,7 +81,7 @@ class EngineOrchestrator @Autowired constructor(
 
                 if (diretoryName != null) {
                     if (arquitecture != "completo") {
-                        notifier.setNotifyStatus("Injetando dependencias do React")
+                        serverEventsController.updateSSEContent(id, "{\"message\":\"Injetando dependencias do React\"}")
                         ReadmeGenerator.setReactTable("\n" +
                                 "# Dependencias\n" +
                                 "\n" +
@@ -95,6 +90,7 @@ class EngineOrchestrator @Autowired constructor(
                                 "| Dependencia |  Versão  |\n" +
                                 "|:-----|:--------:|\n")
                         reactDependencyInjection.injection(destinationPath, diretoryName, reactDependencies)
+                        serverEventsController.updateSSEContent(id, "{\"message\":\"Injetando dependencias do Flutter\"}")
                         ReadmeGenerator.setFlutterTable("Flutter\n" +
                                 "\n" +
                                 "| Dependencia |  Versão  |\n" +
